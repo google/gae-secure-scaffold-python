@@ -1,0 +1,20 @@
+/*
+ * Note that this namespace must be unique if this is used with the Closure
+ * Library:
+ * https://developers.google.com/closure/templates/docs/javascript_usage
+ * Section: "Usage with the Closure Library"
+ *
+ * Strict mode autoescaping is the default in newer versions of the Closure
+ * Template compiler, but we explicitly specify it for now.
+ */
+{namespace app.templates autoescape="strict"}
+
+/**
+ * A "hello, world" template.
+ *
+ * @param? name The name of the person to say hello to.
+ */
+{template .helloWorld}
+<h1>Hello, {if $name}{$name}{else}world{/if}!</h1>
+{/template}
+
