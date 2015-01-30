@@ -79,7 +79,7 @@ An alternative to the Grunt build is provided via the `util.sh` shell script.
     regardless of whether you are on Linux or OS X.
 1.  `curl -O <url on clipboard>`
 1.  `unzip google_appengine_*.zip`
-1.  `mkdir google_closure; mkdir google_closure; cd google_closure`
+1.  `mkdir google_closure; cd google_closure`
 1.  `curl -O https://dl.google.com/closure-compiler/compiler-latest.zip`
 1.  `unzip compiler-latest.zip; cd ..`
 1.  `mkdir google_closure_templates; cd google_closure_templates`
