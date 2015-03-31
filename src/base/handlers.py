@@ -18,9 +18,10 @@ import django.conf
 import django.template
 import django.template.loader
 import functools
-import jinja2
+
 import json
 import webapp2
+from webapp2_extras import jinja2
 
 import api_fixer
 import constants
@@ -217,15 +218,43 @@ class BaseHandler(webapp2.RequestHandler):
     self._SetCommonResponseHeaders()
     super(BaseHandler, self).dispatch()
 
+
+  @classmethod
+  def get_jinja2_config(cls):
+    """
+      Builds Jinja2 config based on constants.
+
+      Note: this is used in the factory below, but an alternative way of setting
+      up Jinja2 would be to use the WSGIApplication config to set this and not
+      use the factory below. This has the advantage of having different settings
+      for different applications and not set here at the handler level.
+    """
+    extensions = ['jinja2.ext.with_']
+    return {
+      'environment_args': {
+        'autoescape': True,
+        'extensions': extensions,
+        'auto_reload': constants.DEBUG,
+      },
+      'template_path': constants.TEMPLATE_DIR
+    }
+
+  @staticmethod
+  def j2_factory(app):
+    """
+      The factory function passed to get_jinja2.
+      Args:
+        app: the WSGIApplication
+    """
+    return jinja2.Jinja2(app, BaseHandler.get_jinja2_config())
+
   @webapp2.cached_property
   def jinja2(self):
-    extensions = ['jinja2.ext.with_']
-    env = jinja2.Environment(autoescape=True,
-                             auto_reload=constants.DEBUG,
-                             loader=jinja2.FileSystemLoader(
-                                 constants.TEMPLATE_DIR),
-                             extensions=extensions)
-    return env
+    """
+      Get the cached Jinja2 instance from the app registry, if none exists
+      the factory function is used to create one.
+    """
+    return jinja2.get_jinja2(self.j2_factory, app=self.app)
 
   def render_to_string(self, template_name, template_values=None):
     """Renders template_name with template_values and returns as a string."""
@@ -234,10 +263,9 @@ class BaseHandler(webapp2.RequestHandler):
 
     template_values['_xsrf'] = self._xsrf_token
     if self.app.config.get('template', constants.JINJA2) is constants.JINJA2:
-      t = self.jinja2.get_template(template_name)
-    else:
-      t = django.template.loader.get_template(template_name)
-      template_values = django.template.Context(template_values)
+      return self.jinja2.render_template(template_name, **template_values)
+    t = django.template.loader.get_template(template_name)
+    template_values = django.template.Context(template_values)
     return t.render(template_values)
 
   def render(self, template_name, template_values=None):
