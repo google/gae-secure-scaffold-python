@@ -44,6 +44,15 @@ class MainTest(unittest2.TestCase):
     self._VerifyInheritance(main._CRON_ROUTES, handlers.BaseCronHandler)
     self._VerifyInheritance(main._TASK_ROUTES, handlers.BaseTaskHandler)
 
+  def testStrictHandlerMethodRouting(self):
+    router = webapp2.Router(main._USER_ROUTES + main._AJAX_ROUTES +
+                            main._ADMIN_ROUTES + main._ADMIN_AJAX_ROUTES)
+    routes = router.match_routes + router.build_routes.values()
+    for route in routes:
+      if route.handler_method and not route.methods:
+        self.fail('%s specifies a handler_method but no "methods" attribute, '
+                  'and may be vulnerable to XSRF via GET requests' %
+                  (route.template))
 
 if __name__ == '__main__':
   unittest2.main()
