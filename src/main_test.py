@@ -15,6 +15,7 @@
 
 import unittest2
 import webapp2
+import webapp2_extras.routes
 
 from base import handlers
 import main
@@ -27,32 +28,67 @@ class MainTest(unittest2.TestCase):
     """Checks that the handlers of the given routes inherit from base_class."""
     router = webapp2.Router(routes_list)
     routes = router.match_routes + router.build_routes.values()
+    inheritance_errors = ''
     for route in routes:
-      self.assertTrue(issubclass(route.handler, base_class),
-          msg='%s in does not inherit from %s.' % (
-              route.handler.__name__, base_class.__name__))
+      if issubclass(route.__class__, webapp2_extras.routes.MultiRoute):
+        self._VerifyInheritance(list(route.get_routes()), base_class)
+        continue
+
+      if issubclass(route.handler, webapp2.RedirectHandler):
+        continue
+
+      if not issubclass(route.handler, base_class):
+        inheritance_errors += '* %s does not inherit from %s.\n' % (
+            route.handler.__name__, base_class.__name__)
+
+    return inheritance_errors
 
   def testRoutesInheritance(self):
-    self._VerifyInheritance(main._UNAUTHENTICATED_ROUTES, handlers.BaseHandler)
-    self._VerifyInheritance(main._UNAUTHENTICATED_AJAX_ROUTES,
-                            handlers.BaseAjaxHandler)
-    self._VerifyInheritance(main._USER_ROUTES, handlers.AuthenticatedHandler)
-    self._VerifyInheritance(main._AJAX_ROUTES,
-                            handlers.AuthenticatedAjaxHandler)
-    self._VerifyInheritance(main._ADMIN_ROUTES, handlers.AdminHandler)
-    self._VerifyInheritance(main._ADMIN_AJAX_ROUTES, handlers.AdminAjaxHandler)
-    self._VerifyInheritance(main._CRON_ROUTES, handlers.BaseCronHandler)
-    self._VerifyInheritance(main._TASK_ROUTES, handlers.BaseTaskHandler)
+    errors = ''
+    errors += self._VerifyInheritance(main._UNAUTHENTICATED_ROUTES,
+                                      handlers.BaseHandler)
+    errors += self._VerifyInheritance(main._UNAUTHENTICATED_AJAX_ROUTES,
+                                      handlers.BaseAjaxHandler)
+    errors += self._VerifyInheritance(main._USER_ROUTES,
+                                      handlers.AuthenticatedHandler)
+    errors += self._VerifyInheritance(main._AJAX_ROUTES,
+                                      handlers.AuthenticatedAjaxHandler)
+    errors += self._VerifyInheritance(main._ADMIN_ROUTES,
+                                      handlers.AdminHandler)
+    errors += self._VerifyInheritance(main._ADMIN_AJAX_ROUTES,
+                                      handlers.AdminAjaxHandler)
+    errors += self._VerifyInheritance(main._CRON_ROUTES,
+                                      handlers.BaseCronHandler)
+    errors += self._VerifyInheritance(main._TASK_ROUTES,
+                                      handlers.BaseTaskHandler)
+    if errors:
+      self.fail('Some handlers do not inherit from the correct classes:\n' +
+                errors)
 
   def testStrictHandlerMethodRouting(self):
+    """Checks that handler functions properly limit applicable HTTP methods."""
     router = webapp2.Router(main._USER_ROUTES + main._AJAX_ROUTES +
                             main._ADMIN_ROUTES + main._ADMIN_AJAX_ROUTES)
     routes = router.match_routes + router.build_routes.values()
-    for route in routes:
+    failed_routes = []
+    while routes:
+      route = routes.pop()
+      if issubclass(route.__class__, webapp2_extras.routes.MultiRoute):
+        routes += list(route.get_routes())
+        continue
+
+      if issubclass(route.handler, webapp2.RedirectHandler):
+        continue
+
       if route.handler_method and not route.methods:
-        self.fail('%s specifies a handler_method but no "methods" attribute, '
-                  'and may be vulnerable to XSRF via GET requests' %
-                  (route.template))
+        failed_routes.append('%s (%s)' % (route.template,
+                                          route.handler.__name__))
+
+    if failed_routes:
+      self.fail('Some handlers specify a handler_method but are missing a '
+                'methods" attribute and may be vulnerable to XSRF via GET '
+                'requests:\n * ' + '\n * '.join(failed_routes))
+
 
 if __name__ == '__main__':
   unittest2.main()
