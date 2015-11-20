@@ -65,7 +65,7 @@ Closure Templates</a>.
 <p>XSS is a <a href="https://www.google.com/about/appsecurity/learning/xss/">
 complicated topic</a>, and these aren't the only attack vectors - please be
 sure you understand the risks inherent in handling user input.</p>
-<p>Ready to move on?  Click <a href="/xssi">here</a> to learn about Cross-Site
+<p>Ready to move on?  Click <a href="/examples/xssi">here</a> to learn about Cross-Site
 Script Inclusion</a>.</p>
 {% endif %}
 <h2>Output:</h2>
@@ -79,6 +79,8 @@ Hello,
   {% endif %}
 {% endif %}
 {% if autoescape and string %}
-<p>Now try again, but this time check the "disable autoescaping" checkbox.</p>
+<p>Now try again, but you might want to check the "disable autoescaping" checkbox.
+In order to enable this option you need to modify base/handler.py and add "jinja2.ext.autoescape" extension in jinja2 config setting.
+</p>
 {% endif %}
 {% endblock %}
