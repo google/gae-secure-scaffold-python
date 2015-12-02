@@ -83,7 +83,7 @@ then <code>GET</code> requests will automatically have that prefix appended.
 variants, they will require a valid XSRF token in order to process the
 request.</p>
 
-<p>If you're not familiar with XSRF, please click <a href="/xsrf">here</a> to
+<p>If you're not familiar with XSRF, please click <a href="/examples/xsrf">here</a> to
 learn how the framework helps defend against that attack.  Don't be alarmed
 if you're asked to log in - it's necessary for the demonstration.</p>
 {% endblock %}

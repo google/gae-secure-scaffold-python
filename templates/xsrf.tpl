@@ -53,7 +53,7 @@ request processing!
 <p>XSRF token validation failed!</p>
 {% endif %}
 <p>
-<form method="post" action="/xsrf">
+<form method="post" action="/examples/xsrf">
 <input type="text" size="48" id="xsrf" name="xsrf" value="{{_xsrf}}" />
 <label for="xsrf">XSRF Token</label><br />
 <input type="submit" />
