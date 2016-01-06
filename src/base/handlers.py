@@ -202,6 +202,7 @@ class BaseHandler(webapp2.RequestHandler):
     report_only = False
     if 'reportOnly' in csp_policy:
       report_only = csp_policy.get('reportOnly')
+      csp_policy = csp_policy.copy()
       del csp_policy['reportOnly']
     header_name = ('Content-Security-Policy%s' %
                    ('-Report-Only' if report_only else ''))
