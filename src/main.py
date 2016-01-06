@@ -98,18 +98,23 @@ _CONFIG = {
     # such as unsafe-inline or unsafe-eval is highly discouraged, as these
     # may lead to XSS attacks.
     'csp_policy': {
-        # https://developers.google.com/fonts/docs/technical_considerations
-        'font-src':    '\'self\' themes.googleusercontent.com '
-                       '*.gstatic.com',
-        # Maps, YouTube provide <iframe> based embedding at these URIs.
-        'frame-src':   '\'self\' www.google.com www.youtube.com',
-        # Assorted Google-hosted APIs.
-        'script-src':  '\'self\' *.googleanalytics.com *.google-analytics.com',
-        # In generated code from http://www.google.com/fonts
-        'style-src':   '\'self\' fonts.googleapis.com *.gstatic.com',
         # Fallback.
-        'default-src': '\'self\' *.gstatic.com',
-        'report-uri':  '/csp',
+        'default-src': '\'self\'',
+        # Disallow Flash, etc.
+        'object-src': '\'none\'',
+        # Google Analytics.
+        'script-src': '\'self\' https://www.google-analytics.com/analytics.js',
+        # Maps, YouTube provide <iframe> based embedding at these URIs.
+        'child-src':  '\'self\' https://www.google.com https://www.youtube.com',
+        # Deprecated. Used for supporting browsers that use CSP 1.0 only.
+        'frame-src':  '\'self\' https://www.google.com https://www.youtube.com',
+        # In generated code from http://www.google.com/fonts
+        'style-src':  '\'self\' https://fonts.googleapis.com '
+                      'https://*.gstatic.com',
+        # https://developers.google.com/fonts/docs/technical_considerations
+        'font-src':   '\'self\' https://themes.googleusercontent.com '
+                      'https://*.gstatic.com',
+        'report-uri': '/csp',
         'reportOnly': base.constants.DEBUG,
     }
 }
