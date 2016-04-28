@@ -17,6 +17,13 @@ def main(sdk_path, test_path, third_party_path=None):
   dev_appserver.fix_sys_path()
   if third_party_path:
     sys.path.insert(0, third_party_path)
+
+  try:
+    import appengine_config
+    (appengine_config)
+  except ImportError:
+    print "Note: unable to import appengine_config."
+        
   suite = unittest2.loader.TestLoader().discover(test_path,
                                                  pattern='*_test.py')
   unittest2.TextTestRunner(verbosity=2).run(suite)
