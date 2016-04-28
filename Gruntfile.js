@@ -28,7 +28,7 @@ module.exports = function(grunt) {
         compilerFile: [process.env.HOME,
                       'bin', 'google_closure', 'compiler.jar'].join('/'),
         compilerOpts: {
-          compilation_level: grunt.option('dev', false) ?
+          compilation_level: grunt.option('dev') ?
             'SIMPLE_OPTIMIZATIONS' : 'ADVANCED_OPTIMIZATIONS'
         },
         namespaces: 'app',
