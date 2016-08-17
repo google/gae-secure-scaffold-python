@@ -14,6 +14,7 @@
 """A collection of secure base handlers for webapp2-based applications."""
 
 import abc
+import base64
 import django.conf
 import django.template
 import django.template.loader
@@ -26,6 +27,7 @@ from webapp2_extras import jinja2
 import api_fixer
 import constants
 import models
+import os
 import xsrf
 
 from google.appengine.api import memcache
@@ -85,6 +87,12 @@ def _GetXsrfKey():
     xsrf_key = config.xsrf_key
     client.set('xsrf_key', xsrf_key)
   return xsrf_key
+
+
+def _GetCspNonce():
+  """Returns a random CSP nonce."""
+  nonce_length = constants.NONCE_LENGTH
+  return base64.b64encode(os.urandom(nonce_length * 2))[:nonce_length]
 
 
 # Classes with a __metaclass__ of _HandlerMeta may not contain any methods
@@ -168,6 +176,9 @@ class BaseHandler(webapp2.RequestHandler):
         self.response.set_cookie('XSRF-TOKEN', self._xsrf_token, httponly=False)
     else:
       self._xsrf_token = None
+
+    self.csp_nonce = _GetCspNonce()
+
     self._RawWrite = self.response.out.write
     self.response.out.write = self._ReplacementWrite
 
@@ -202,13 +213,19 @@ class BaseHandler(webapp2.RequestHandler):
     report_only = False
     if 'reportOnly' in csp_policy:
       report_only = csp_policy.get('reportOnly')
+      csp_policy = csp_policy.copy()
       del csp_policy['reportOnly']
     header_name = ('Content-Security-Policy%s' %
                    ('-Report-Only' if report_only else ''))
-    policies = []
+    directives = []
     for (k, v) in csp_policy.iteritems():
-      policies.append('%s %s' % (k, v))
-    self.response.headers.add(header_name, '; '.join(policies))
+      directives.append('%s %s' % (k, v))
+    csp = '; '.join(directives)
+
+    # Set random nonce per response
+    csp = csp % {'nonce_value': self.csp_nonce}
+
+    self.response.headers.add(header_name, csp)
 
   @webapp2.cached_property
   def current_user(self):
@@ -262,6 +279,7 @@ class BaseHandler(webapp2.RequestHandler):
       template_values = {}
 
     template_values['_xsrf'] = self._xsrf_token
+    template_values['_csp_nonce'] = self.csp_nonce
     if self.app.config.get('template', constants.JINJA2) is constants.JINJA2:
       return self.jinja2.render_template(template_name, **template_values)
     t = django.template.loader.get_template(template_name)

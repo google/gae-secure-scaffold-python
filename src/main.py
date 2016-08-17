@@ -28,6 +28,7 @@ from examples import example_handlers
 # These should all inherit from base.handlers.BaseHandler
 _UNAUTHENTICATED_ROUTES = [('/', handlers.RootHandler),
                            ('/examples/xss', example_handlers.XssHandler),
+                           ('/examples/csp', example_handlers.CspHandler),
                            ('/examples/xssi', example_handlers.XssiHandler)]
 
 # These should all inherit from base.handlers.BaseAjaxHandler
@@ -78,7 +79,7 @@ _TASK_ROUTES = []
 #                   implying 30 days of strict HTTPS for all subdomains.
 #
 #   csp_policy:     A dictionary with keys that correspond to valid CSP
-#                   directives, as defined in the W3C CSP 1.1 spec.  Each
+#                   directives, as defined in the W3C CSP 3 spec.  Each
 #                   key/value pair is transmitted as a distinct
 #                   Content-Security-Policy header.
 #                   Default: {'default-src': '\'self\''}
@@ -93,23 +94,29 @@ _TASK_ROUTES = []
 #  there as well.
 
 _CONFIG = {
-    # Developers are encouraged to build sites that comply with this (or
-    # a similarly restrictive) CSP policy.  In particular, adding directives
-    # such as unsafe-inline or unsafe-eval is highly discouraged, as these
-    # may lead to XSS attacks.
+    # Developers are encouraged to build sites that comply with this CSP policy.
+    # Changing the first two entries (nonce, strict-dynamic) of the script-src
+    # directive may render XSS protection invalid! For more information take a
+    # look here https://www.w3.org/TR/CSP3/#strict-dynamic-usage
+    # With this policy, modern browsers will execute only those scripts whose
+    # nonce attribute matches the value set in the policy header, as well as
+    # scripts dynamically added to the page by scripts with the proper nonce.
+    # Older browsers, which don't support the CSP3 standard, will ignore the
+    # nonce-* and 'strict-dynamic' keywords and fall back to [script-src
+    # 'unsafe-inline' https: http:] which will not provide protection against
+    # XSS vulnerabilities, but will allow the application to function properly.
     'csp_policy': {
-        # https://developers.google.com/fonts/docs/technical_considerations
-        'font-src':    '\'self\' themes.googleusercontent.com '
-                       '*.gstatic.com',
-        # Maps, YouTube provide <iframe> based embedding at these URIs.
-        'frame-src':   '\'self\' www.google.com www.youtube.com',
-        # Assorted Google-hosted APIs.
-        'script-src':  '\'self\' *.googleanalytics.com *.google-analytics.com',
-        # In generated code from http://www.google.com/fonts
-        'style-src':   '\'self\' fonts.googleapis.com *.gstatic.com',
-        # Fallback.
-        'default-src': '\'self\' *.gstatic.com',
-        'report-uri':  '/csp',
+        # Disallow Flash, etc.
+        'object-src': '\'none\'',
+        # Strict CSP with fallbacks for browsers not supporting CSP v3.
+        'script-src': base.constants.CSP_NONCE_PLACEHOLDER_FORMAT +
+                      # Propagate trust to dynamically created scripts.
+                      '\'strict-dynamic\' '
+                      # Fallback. Ignored in presence of a nonce
+                      '\'unsafe-inline\' '
+                      # Fallback. Ignored in presence of strict-dynamic.
+                      'https: http:',
+        'report-uri': '/csp',
         'reportOnly': base.constants.DEBUG,
     }
 }
