@@ -89,3 +89,19 @@ class XssiHandler(handlers.BaseHandler):
 
   def post(self):
     self.get()
+
+
+class CspHandler(handlers.BaseHandler):
+
+  def get(self):
+    # Test for jinja extension
+    extensions = self.get_jinja2_config()['environment_args']['extensions']
+    autoescape_ext = 'jinja2.ext.autoescape' in extensions
+
+    if not constants.IS_DEV_APPSERVER:
+      self.render('debug_only.tpl')
+      return
+    self.render('csp.tpl')
+
+  def post(self):
+    self.get()

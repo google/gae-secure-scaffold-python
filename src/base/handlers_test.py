@@ -120,6 +120,25 @@ class HandlersTest(unittest2.TestCase):
                                            method='POST',
                                            POST={'xsrf': token}).body)
 
+  def testResponseHasStrictCSP(self):
+    """Checks that the CSP in the response is set and strict.
+    More information: https://www.w3.org/TR/CSP3/#strict-dynamic-usage
+    """
+    fakeNonce = 'rand0m123'
+    strictScriptSrc = ['\'strict-dynamic\'', '\'nonce-%s\'' % fakeNonce]
+    strictObjectSrc = ['\'none\'']
+
+    handlers._GetCspNonce = lambda : fakeNonce
+
+    headers = self.app.get_response('/', method='GET').headers
+    csp_header = headers.get('Content-Security-Policy')
+    self.assertIsNotNone(csp_header)
+    csp = {x.split()[0]: x.split()[1:] for x in csp_header.split(';')}
+
+    # Check that csp contains a nonce and the stict-dynamic keyword.
+    self.assertTrue(set(strictScriptSrc) <= set(csp.get('script-src')))
+    self.assertListEqual(strictObjectSrc, csp.get('object-src'))
+
   def testAjaxGetResponsesIncludeXssiPrefix(self):
     self.assertEqual(handlers._XSSI_PREFIX, self.app.get_response('/ajax').body)
 
