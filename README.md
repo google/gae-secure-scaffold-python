@@ -85,6 +85,12 @@ An alternative to the Grunt build is provided via the `util.sh` shell script.
 1.  `mkdir google_closure_templates; cd google_closure_templates`
 1.  `curl -O https://dl.google.com/closure-templates/closure-templates-for-javascript-latest.zip`
 1.  `unzip closure-templates-for-javascript-latest.zip`
+1.  `git clone https://github.com/google/closure-templates.git`
+1.  `cd closure-templates && mvn`
+1.  After Maven completes building the files, `touch python/__init__.py`
+1.  `cd target`
+1.  `rename 's/ *soy-[0-9]{4}-?[0-9]{2}-?[0-9]{2}-//' ./*.jar`
+1.  `cp SoyToPySrcCompiler.jar ../../`
 1.  `popd`
 
 To install dependencies for unit testing:
