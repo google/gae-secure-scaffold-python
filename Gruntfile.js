@@ -152,8 +152,8 @@ module.exports = function(grunt) {
             grunt.log.writeln('git status error: ' + result);
             done(false);
           }
-          if (String(result).indexOf('\nnothing to commit, working ' +
-                'directory clean') == -1) {
+          var pattern = /nothing to commit, working (directory|tree) clean/i;
+          if (!pattern.test(String(result))) {
             uncommitedChanges = true;
           }
           grunt.util.spawn(
