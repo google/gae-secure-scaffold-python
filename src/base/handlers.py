@@ -273,22 +273,29 @@ class BaseHandler(webapp2.RequestHandler):
     """
     return jinja2.get_jinja2(self.j2_factory, app=self.app)
 
-  def render_to_string(self, template_name, template_values=None):
+  def render_to_string(self, template, template_values=None):
     """Renders template_name with template_values and returns as a string."""
     if not template_values:
       template_values = {}
 
     template_values['_xsrf'] = self._xsrf_token
     template_values['_csp_nonce'] = self.csp_nonce
-    if self.app.config.get('template', constants.JINJA2) is constants.JINJA2:
-      return self.jinja2.render_template(template_name, **template_values)
-    t = django.template.loader.get_template(template_name)
-    template_values = django.template.Context(template_values)
-    return t.render(template_values)
+    template_strategy = self.app.config.get('template', constants.CLOSURE)
 
-  def render(self, template_name, template_values=None):
-    """Renders template_name with template_values and writes to the response."""
-    self._RawWrite(self.render_to_string(template_name, template_values))
+    if template_strategy == constants.DJANGO:
+      t = django.template.loader.get_template(template)
+      template_values = django.template.Context(template_values)
+      return t.render(template_values)
+    elif template_strategy == constants.JINJA2:
+      return self.jinja2.render_template(template, **template_values)
+    else:
+      ijdata = { 'csp_nonce': self.csp_nonce }
+      return template(template_values, ijdata)
+
+  def render(self, template, template_values=None):
+    """Renders template with template_values and writes to the response."""
+    template_strategy = self.app.config.get('template', constants.CLOSURE)
+    self._RawWrite(self.render_to_string(template, template_values))
 
 
 class BaseCronHandler(BaseHandler):

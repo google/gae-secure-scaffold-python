@@ -17,9 +17,17 @@ from google.appengine.api import users
 from base import constants
 from base import handlers
 
+from generated import example
+
 # Example handlers to demonstrate functionality.
 # Replace with your own implementations.
-class XssHandler(handlers.BaseHandler):
+class ClosureXssHandler(handlers.BaseHandler):
+
+  def get(self):
+    self.render(example.xss,
+                { 's': self.request.get('string', '') })
+
+class JinjaXssHandler(handlers.BaseHandler):
 
   def get(self):
     # Test for jinja extension

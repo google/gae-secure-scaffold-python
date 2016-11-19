@@ -27,7 +27,10 @@ from examples import example_handlers
 
 # These should all inherit from base.handlers.BaseHandler
 _UNAUTHENTICATED_ROUTES = [('/', handlers.RootHandler),
-                           ('/examples/xss', example_handlers.XssHandler),
+                           ('/examples/xss',
+                            example_handlers.ClosureXssHandler),
+                           ('/examples/jinja',
+                            example_handlers.JinjaXssHandler),
                            ('/examples/csp', example_handlers.CspHandler),
                            ('/examples/xssi', example_handlers.XssiHandler)]
 
@@ -59,14 +62,15 @@ _TASK_ROUTES = []
 # self.app.config.get('foo')
 #
 # Framework level settings:
-#   template: one of base.constants.JINJA2 (default) or base.constants.DJANGO.
+#   template: one of base.constants.CLOSURE (default), base.constants.DJANGO,
+#             or base.constants.JINJA.
 #
 #   using_angular: True or False (default).  When True, an XSRF-TOKEN cookie
 #                  will be set for interception/use by Angular's $http service.
 #                  When False, no header will be set (but an XSRF token will
 #                  still be available under the _xsrf key for Django/Jinja
 #                  templates).  If you set this to True, be especially careful
-#                  when mixing Angular and Django/Jinja2 templates:
+#                  when mixing Angular and any server side templates:
 #                    https://github.com/angular/angular.js/issues/5601
 #                  See the summary by IgorMinar for details.
 #
@@ -94,6 +98,7 @@ _TASK_ROUTES = []
 #  there as well.
 
 _CONFIG = {
+    'template': base.constants.CLOSURE,
     # Developers are encouraged to build sites that comply with this CSP policy.
     # Changing the first two entries (nonce, strict-dynamic) of the script-src
     # directive may render XSS protection invalid! For more information take a

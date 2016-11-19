@@ -1,0 +1,77 @@
+/*
+ * Note that this namespace must be unique if this is used with the Closure
+ * Library:
+ * https://developers.google.com/closure/templates/docs/javascript_usage
+ * Section: "Usage with the Closure Library"
+ *
+ * Strict mode autoescaping is the default in newer versions of the Closure
+ * Template compiler, but we explicitly specify it for now.
+ */
+{namespace example autoescape="strict"}
+
+{template .header}
+  {@param title: string}
+<!doctype html>
+  <html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>{$title}</title>
+  </head>
+{/template}
+
+{template .footer}
+</html>
+{/template}
+
+{template .xss}
+  {@param? s: string}
+  {call .header}
+    {param title: 'Cross-Site Scripting' /} 
+  {/call}
+  <h1>Cross-Site Scripting</h1>
+  <p>Cross-Site Scripting (XSS) occurs when user input is output by a web server
+  without being properly escaped for the <em>context</em> in which it is
+  displayed.
+  </p>
+  <p>Consider a simple page like this one, which, when given a name, will
+  print a simple greeting, e.g. "Hello, Jane!"</p>
+  <p>What happens if a user decides to enter something malicious for their
+  name, maybe something like: 
+  <code>&lt;script&gt;alert(1);&lt;/script&gt;</code>
+  </p>
+  <p>If we output that string directly in our page, we would execute the
+  (possibly malicious) Javascript!  The problem gets even more complex when
+  you consider that the escaping rules vary across contexts - e.g. escaping
+  is done differently inside <code>&lt;script&gt;</code> blocks.
+  </p>
+  <p>The good news is that this project uses Closure Templates by default,
+  which support strict contextually aware autoescaping - see the <a 
+  href="https://developers.google.com/closure/templates/docs/security">
+  security documentation</a> for more.  There are still some risks (see
+  the comments in <code>src/main.py</code> about mixing client and server
+  side template languages) - but you can see how the value is escaped
+  differently by viewing the source of this page.  Try submitting the form
+  below (the value will be printed in both HTML and Javascript contexts
+  right below the form), and use various special characters to see how the
+  escaping behavior differs.
+  </p>
+  <form method="get">
+    <input id="string" name="string" type="text" size="30" value="{$s}"
+     placeholder="&apos;&quot;&gt;&lt;script&gt;alert(1);&lt;/script&gt;" />
+    <label for="string">String to output</label><br />
+    <input type="submit" value="Submit">
+  </form>
+  <h2>Output</h2>
+  <p>{if $s}{$s}{/if}</p>
+  <!--
+       Ordinarily, a construct like this would generate a CSP report violation
+       (in dev_appserver) since 'unsafe-inline' is not permitted, but Closure
+       Templates automatically insert and propagate 'nonce' values to inline
+       script blocks.  In-line event handlers will still cause violations,
+       however, so attaching them directly using DOM methods is necessary.
+  -->
+  <script>
+    var s = '{$s}';
+  </script>
+  {call .footer /}
+{/template}
+
