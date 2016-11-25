@@ -63,54 +63,34 @@ These instructions have been tested with the following software:
 * git
 * curl
 
-An alternative to the Grunt build is provided via the `util.sh` shell script.
-
 ## Dependency Setup
 ----
-1.  `pushd .`
+From the root of the repository:
+
+1.  `git submodule init`
+1.  `git submodule update`
+1.  `cd closure-compiler` - refer to closure-compiler/README.md on how to build
+       the compiler.  Feel free to use this GWT-skipping variant:
+       `mvn -pl externs/pom.xml,pom-main.xml,pom-main-shaded.xml`
+1.  `cd ../closure-templates && mvn && cd ..`
+1.  `npm install`
 1.  `mkdir $HOME/bin; cd $HOME/bin`
 1.  `npm install grunt-cli`
     * Alternatively, `sudo npm install -g grunt-cli` will install system-wide
       and you may skip the next step.
 1.  `export PATH=$HOME/bin/node_modules/grunt-cli/bin:$PATH`
     * It is advisable to add this to login profile scripts (.bashrc, etc.).
-1.  Visit <https://developers.google.com/appengine/downloads>, copy URL of
-    "Linux/Other Platforms" zip file for current AppEngine SDK.  Do this
-    regardless of whether you are on Linux or OS X.
-1.  `curl -O <url on clipboard>`
-1.  `unzip google_appengine_*.zip`
-1.  `mkdir google_closure; cd google_closure`
-1.  `curl -O https://dl.google.com/closure-compiler/compiler-latest.zip`
-1.  `unzip compiler-latest.zip; cd ..`
-1.  `mkdir google_closure_templates; cd google_closure_templates`
-1.  `curl -O https://dl.google.com/closure-templates/closure-templates-for-javascript-latest.zip`
-1.  `unzip closure-templates-for-javascript-latest.zip`
-1.  `git clone https://github.com/google/closure-templates.git`
-1.  `cd closure-templates && mvn`
-1.  After Maven completes building the files, `touch python/__init__.py`
-1.  `cd target`
-1.  `rename 's/ *soy-[0-9]{4}-?[0-9]{2}-?[0-9]{2}-//' ./*.jar`
-1.  `cp SoyToPySrcCompiler.jar ../../`
-1.  `popd`
+1.  Visit <https://cloud.google.com/appengine/docs/python/download>, and choose
+    the alternative option to "download the original App Engine SDK for Python."
+    Choose the "Linux" platform (even if you use OS X).  Unzip the file, such
+    that $HOME/bin/google_appengine/ is populated with the contents of the .zip.
 
 To install dependencies for unit testing:
 1. `sudo easy_install pip`
 1. `sudo pip install unittest2`
 
-## Scaffold Setup
+## Scaffold Development
 ----
-These instructions assume a working directory of the repository root.
-
-### Dependencies
-
-All users should run:
-
-1. `git submodule init`
-1. `git submodule update`
-
-Grunt users should also run:
-
-`npm install`
 
 ### Testing
 To run unit tests:
@@ -126,16 +106,11 @@ To run the development appserver locally:
 
 Note that the development appserver will be running on a snapshot of code
 at the time you run it.  If you make changes, you can run the various Grunt
-tasks in order to propagate them to the local appserver.  For instance:
-
+tasks in order to propagate them to the local appserver.  For instance,
 `grunt copy` will refresh the source code (local and third party), static files,
-and templates.  You can run `grunt closureSoys` and/or `grunt closureBuilder`
-before `grunt copy` if you need to rebuild your Closure Templates or Closure
-Javascript.
-
-If you are not using Grunt, simply run:
-
-`util.sh -d`
+and templates.  `grunt closureSoys` and/or `grunt closureBuilder` will rebuild
+the templates or your provided Javascript and the updated versions will be
+written in the output directory.
 
 ### Deployment
 To deploy to AppEngine:
@@ -148,76 +123,24 @@ Specifying `--appid=` will override any value set in `config.json`.  You may
 modify the `config.json` file to avoid having to pass this parameter on
 every invocation.
 
-If you are not using Grunt, simply run:
-
-`util.sh -p <appid>`
-
 ## Notes
 ----
 Files in `js/` are compiled by the Closure Compiler (if available) and placed in
-`out/static/app.js`.
+`out/static/app.js`.  Included in this compilation pass is the the output of
+the `closureSoys:js` task (intermediate artifacts: out/generated/js/\*.js).
 
-Closure templates are compiled by the Closure Template Compiler (if available)
-and placed in `out/static/app.soy.js`.
+Closure Templates that you provide are also compiled using the Python backend,
+and are available using the constants.CLOSURE template strategy (the default).
+The generated source code is stored in out/generated/\*.py.  To use them,
+pass the callable template as the first argument to render(), and a dictionary
+containing the template values as the second argument, e.g.:
+
+    from generated import helloworld
+    
+    [...]
+    
+    self.render(helloworld.helloWorld, { 'name': 'first last' })
 
 The `/static` and `/template` directories are replicated in `out/`, and the
 files in `src/` are rebased into `out/` (so `src/base/foo.py` becomes
 `out/base/foo.py`).
-
-
-## Detailed Dependency Information
--------------
-* The AppEngine SDK should be present in the directory:
-
-   `$HOME/bin/google_appengine/`
-
-You can find / download this at:
-<https://developers.google.com/appengine/downloads>
-
-* (Optional, if using Google Closure): The Google Closure Compiler (and a
-  suitable Java runtime), located at:
-
-  `$HOME/bin/google_closure/`
-
-You can find / download this at:
-  <https://github.com/google/closure-compiler>
-
-You will need all the files from this archive in the above directory:
-  compiler-latest.zip
-
-The compiler is invoked with the default namespace of 'app.'  The compiled
-Javascript is written to `out/static/app.js`.
-
-You will also need the Closure Library (in the closure-library submodule of
-this repository).
-
-You can find more on the Closure Library here:
-  <https://github.com/google/closure-library>
-
-To use it, you will need to check out the code as a submodule by running the
-following commands from the base directory of this repository:
-
-  `git submodule add <https://github.com/google/closure-library/> closure-library`
-
-  `git commit -m "Initial import of Closure Library"`
-
-* (Optional, if using Closure Templates): The Closure Template compiler (in
-  addition to the Closure Compiler), located at:
-
-   `$HOME/bin/google_closure_templates`
-
-You can find / download Closure Templates at:
-  <https://github.com/google/closure-templates>
-
-You will need all the files from this archive in the above directory:
-  closure-templates-for-javascript-latest.zip
-
-You can build this using the ant target "zips-for-release", or download a
-prebuilt version (the URL is in the Dependency Setup section).
-
-The deployment script checks for the presence of .soy files in templates/soy.
-If found, they are compiled to a single Javascript file using the
-SoyToJsSrcCompiler.jar in the previously mentioned directory.  The resulting
-Javascript file is stored in static/app.soy.js, alongside the `soyutils.js`
-library provided with the Closure Templates bundle that is necessary to include
-on any page you plan to use Closure Templates.

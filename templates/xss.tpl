@@ -5,7 +5,8 @@
 {% block content %}
 <h1>Cross-Site Scripting</h1>
 <p>Cross-Site Scripting (XSS) occurs when user input is output by a web server
-without being properly escaped for the <em>context</em> in which it displayed.
+without being properly escaped for the <em>context</em> in which it is
+displayed.
 </p>
 <p>Consider a simple page like this one, which, when given a name, will print
 a simple greeting, e.g. "Hello, Jane!"</p>

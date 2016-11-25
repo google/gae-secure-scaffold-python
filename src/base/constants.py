@@ -24,7 +24,7 @@ NONCE_LENGTH = 10
 
 # webapp2 application configuration constants.
 # template
-(DJANGO, JINJA2) = range(0, 2)
+(CLOSURE, DJANGO, JINJA2) = range(0, 3)
 
 # using_angular
 DEFAULT_ANGULAR = False
