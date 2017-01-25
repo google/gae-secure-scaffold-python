@@ -125,6 +125,7 @@ class HandlersTest(unittest2.TestCase):
     More information: https://www.w3.org/TR/CSP3/#strict-dynamic-usage
     """
     fakeNonce = 'rand0m123'
+    strictBaseUri = ['\'self\'']
     strictScriptSrc = ['\'strict-dynamic\'', '\'nonce-%s\'' % fakeNonce]
     strictObjectSrc = ['\'none\'']
 
@@ -137,6 +138,7 @@ class HandlersTest(unittest2.TestCase):
 
     # Check that csp contains a nonce and the stict-dynamic keyword.
     self.assertTrue(set(strictScriptSrc) <= set(csp.get('script-src')))
+    self.assertListEqual(strictBaseUri, csp.get('base-uri'))
     self.assertListEqual(strictObjectSrc, csp.get('object-src'))
 
   def testAjaxGetResponsesIncludeXssiPrefix(self):

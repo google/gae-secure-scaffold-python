@@ -51,6 +51,8 @@ TEMPLATE_DIR = os.path.sep.join([os.path.dirname(__file__), '..', 'templates'])
 
 # csp_policy
 DEFAULT_CSP_POLICY = {
+    # Restrict base tags to same origin, to prevent CSP bypasses.
+    'base-uri': '\'self\'',
     # Disallow Flash, etc.
     'object-src': '\'none\'',
     # Strict CSP with fallbacks for browsers not supporting CSP v3.
