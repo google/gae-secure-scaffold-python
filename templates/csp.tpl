@@ -12,6 +12,7 @@ It is enabled by delivering a policy in the <code>Content-Security-Policy</code>
 <p>A production-quality strict policy appropriate for many products is:<br>
 <code>
 Content-Security-Policy:
+  base-uri 'self';
   object-src 'none';
   script-src 'nonce-{random}' 'strict-dynamic' 'unsafe-inline' 'unsafe-eval' https: http:;
 </code>

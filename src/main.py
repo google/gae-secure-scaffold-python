@@ -111,6 +111,8 @@ _CONFIG = {
     # 'unsafe-inline' https: http:] which will not provide protection against
     # XSS vulnerabilities, but will allow the application to function properly.
     'csp_policy': {
+        # Restrict base tags to same origin, to prevent CSP bypasses.
+        'base-uri': '\'self\'',
         # Disallow Flash, etc.
         'object-src': '\'none\'',
         # Strict CSP with fallbacks for browsers not supporting CSP v3.
