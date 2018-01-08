@@ -19,7 +19,9 @@ def main(sdk_path, test_path, third_party_path=None):
     sys.path.insert(0, third_party_path)
   suite = unittest2.loader.TestLoader().discover(test_path,
                                                  pattern='*_test.py')
-  unittest2.TextTestRunner(verbosity=2).run(suite)
+  result = unittest2.TextTestRunner(verbosity=2).run(suite)
+  if len(result.errors) > 0 or len(result.failures) > 0:
+    sys.exit(1)
 
 
 if __name__ == '__main__':
