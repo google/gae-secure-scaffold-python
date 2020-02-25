@@ -1,8 +1,11 @@
-# Secure GAE Scaffold
+# Secure GAE Scaffold for Python 2
 
 ## Introduction
 ----
 Please note: this is not an official Google product.
+
+*This scaffold is for users of App Engine's Python 2.7 runtime. For websites
+deployed to the Python 3 runtime, please see [Secure Scaffold for Python 3](https://github.com/google/gae-secure-scaffold-python3).*
 
 This contains a boilerplate AppEngine application meant to provide a secure
 base on which to build additional functionality.  Structure:
