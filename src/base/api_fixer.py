@@ -89,8 +89,8 @@ ReplaceDefaultArgument(json.dumps, 'cls', _JsonEncoderForHtml)
 
 
 # Pickle.  See http://www.cs.jhu.edu/~s/musings/pickle.html for more info.
-# Whitelist of module name => (module, [list of safe names])
-_PICKLE_CLASS_WHITELIST = { '__builtin__': (__builtin__,
+# Map of safe module name => (module, [list of safe names])
+_PICKLE_CLASS_SAFE_NAMES = { '__builtin__': (__builtin__,
                                             ['basestring',
                                              'bool',
                                              'buffer',
@@ -117,7 +117,7 @@ _PICKLE_CLASS_WHITELIST = { '__builtin__': (__builtin__,
 class RestrictedUnpickler(pickle.Unpickler):
 
   def find_class(self, module_name, name):
-    (module, safe_names) = _PICKLE_CLASS_WHITELIST.get(module_name, (None, []))
+    (module, safe_names) = _PICKLE_CLASS_SAFE_NAMES.get(module_name, (None, []))
     if name in safe_names:
       return getattr(module, name)
     raise ApiSecurityException('%s.%s forbidden in unpickling' % (module, name))
@@ -178,4 +178,3 @@ urlfetch.make_fetch_call = _HttpUrlLoggingWrapper(urlfetch.make_fetch_call)
 sessions.default_config['cookie_args']['secure'] = (not
                                                     constants.IS_DEV_APPSERVER)
 sessions.default_config['cookie_args']['httponly'] = True
-

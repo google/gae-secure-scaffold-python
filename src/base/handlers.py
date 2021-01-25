@@ -106,7 +106,7 @@ _RESTRICTED_FUNCTION_LIST = [
 # functions in the _RESTRICTED_FUNCTION_LIST.  Note that there is no
 # package/module specified, so it is possible to bypass this check through
 # clever (or malicious) naming.
-_RESTRICTED_FUNCTION_CLASS_WHITELIST = [
+_RESTRICTED_FUNCTION_TRUSTED_CLASSES = [
     'BaseHandler',
     'BaseAjaxHandler',
     'BaseCronHandler',
@@ -142,13 +142,13 @@ class _HandlerMeta(abc.ABCMeta):
   'final' are not declared in subclasses. This is because we provide a
   default implementation which enforces various security related functionality.
 
-  Class names that can bypass this whitelist are listed in
-  _RESTRICTED_FUNCTION_CLASS_WHITELIST.  Restricted methods are listed in
+  Class names that can bypass this check are listed in
+  _RESTRICTED_FUNCTION_TRUSTED_CLASSES.  Restricted methods are listed in
   _RESTRICTED_FUNCTION_LIST.
   """
 
   def __new__(mcs, name, bases, dct):
-    if name not in _RESTRICTED_FUNCTION_CLASS_WHITELIST:
+    if name not in _RESTRICTED_FUNCTION_TRUSTED_CLASSES:
       for func in _RESTRICTED_FUNCTION_LIST:
         if func in dct:
           raise SecurityError('%s attempts to override restricted method %s' %
